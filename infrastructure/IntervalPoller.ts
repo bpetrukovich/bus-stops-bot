@@ -1,12 +1,12 @@
 import type { UserConfigProcessor } from "../UserConfigProcessor";
-import type { UserConfig } from "./UserConfig";
+import type { UserReminderConfig } from "./UserReminderConfig";
 
 export class IntervalPoller {
   interval: ReturnType<typeof setInterval> | undefined;
 
   constructor(
     private userConfigProcessor: UserConfigProcessor,
-    private userConfigs: UserConfig[],
+    private userConfigs: UserReminderConfig[],
     private intervalSeconds: number,
   ) {}
 

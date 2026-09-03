@@ -1,5 +1,5 @@
 import { DOMParser } from "linkedom";
-import type { ParsedTransport, Transport } from "../Transport";
+import type { ParsedTransport } from "../Transport";
 import { MinutesParser } from "./MinutesParser";
 
 class ParsingError extends Error {
@@ -28,7 +28,7 @@ export class LinkedomParser {
       );
     }
 
-    const transports: Transport[] = [];
+    const transports: ParsedTransport[] = [];
 
     const infoLines = document.querySelectorAll(".info .info-line");
     if (infoLines.length === 0) {
