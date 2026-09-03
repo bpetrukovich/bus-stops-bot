@@ -45,8 +45,7 @@ test("parse", () => {
       stopName: "Театральный",
       name: "TP3п",
       destination: "Трамвайный парк",
-      nearestMinutes: 12,
-      followingMinutes: 21,
+      minutes: [12, 21],
     },
   ]);
 });

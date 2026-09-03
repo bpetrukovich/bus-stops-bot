@@ -1,5 +1,5 @@
-import type { UserConfig } from "./infrastructure";
 import { LinkedomParser } from "./infrastructure/Parser";
+import type { UserConfig } from "./infrastructure/UserConfig";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 
 const mockUserConfigs: UserConfig[] = [

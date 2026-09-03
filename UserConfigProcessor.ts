@@ -1,5 +1,5 @@
-import type { UserConfig } from "./infrastructure";
 import type { LinkedomParser } from "./infrastructure/Parser";
+import type { UserConfig } from "./infrastructure/UserConfig";
 
 export class UserConfigProcessor {
   constructor(private httpParser: LinkedomParser) {}

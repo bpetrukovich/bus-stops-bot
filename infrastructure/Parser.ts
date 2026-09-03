@@ -57,14 +57,25 @@ export class LinkedomParser {
         return text;
       };
 
+      const minutes = [];
+      const nearestMinutes = MinutesParser.parse(
+        getCellText(cells[2], "nearest"),
+      );
+      const followingMinutes = MinutesParser.parse(
+        getCellText(cells[3], "following"),
+      );
+      if (nearestMinutes) {
+        minutes.push(nearestMinutes);
+      }
+      if (followingMinutes) {
+        minutes.push(followingMinutes);
+      }
+
       transports.push({
         stopName,
         name: getCellText(cells[0], "number"),
         destination: getCellText(cells[1], "destination"),
-        nearestMinutes: MinutesParser.parse(getCellText(cells[2], "nearest")),
-        followingMinutes: MinutesParser.parse(
-          getCellText(cells[3], "following"),
-        ),
+        minutes,
       });
     }
 
