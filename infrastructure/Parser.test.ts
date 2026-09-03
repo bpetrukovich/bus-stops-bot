@@ -45,7 +45,7 @@ test("parse", () => {
       stopName: "Театральный",
       name: "TP3п",
       destination: "Трамвайный парк",
-      minutes: [12, 21],
+      minutes: new Set([12, 21]),
     },
   ]);
 });

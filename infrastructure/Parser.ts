@@ -57,7 +57,7 @@ export class LinkedomParser {
         return text;
       };
 
-      const minutes = [];
+      const minutes = new Set<number>();
       const nearestMinutes = MinutesParser.parse(
         getCellText(cells[2], "nearest"),
       );
@@ -65,10 +65,10 @@ export class LinkedomParser {
         getCellText(cells[3], "following"),
       );
       if (nearestMinutes) {
-        minutes.push(nearestMinutes);
+        minutes.add(nearestMinutes);
       }
       if (followingMinutes) {
-        minutes.push(followingMinutes);
+        minutes.add(followingMinutes);
       }
 
       transports.push({

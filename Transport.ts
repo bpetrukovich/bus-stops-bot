@@ -2,5 +2,5 @@ export type Transport = {
   stopName: string;
   name: string;
   destination: string;
-  minutes: number[];
+  minutes: Set<number>;
 };
