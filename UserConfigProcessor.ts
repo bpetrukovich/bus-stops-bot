@@ -25,7 +25,14 @@ export class UserConfigProcessor {
 
     const htmlString = await response.text();
 
-    const transports = this.httpParser.parse(htmlString);
+    const parsedTransports = this.httpParser.parse(htmlString);
+
+    const transports = parsedTransports.map((transport) => {
+      return {
+        ...transport,
+        busstop: busstop,
+      };
+    });
 
     const neededTransports = transports
       .filter(({ name }) => {

@@ -1,5 +1,5 @@
 import { DOMParser } from "linkedom";
-import type { Transport } from "../Transport";
+import type { ParsedTransport, Transport } from "../Transport";
 import { MinutesParser } from "./MinutesParser";
 
 class ParsingError extends Error {
@@ -10,7 +10,7 @@ class ParsingError extends Error {
 }
 
 export class LinkedomParser {
-  parse(htmlString: string): Transport[] {
+  parse(htmlString: string): ParsedTransport[] {
     const document = new DOMParser().parseFromString(htmlString, "text/html");
     if (!document) {
       throw new ParsingError("Failed to parse HTML document.");
