@@ -1,5 +1,5 @@
 export interface UserConfig {
-  link: string;
+  busstop: string;
   transportName: string;
   remindInMinutes: number;
 }

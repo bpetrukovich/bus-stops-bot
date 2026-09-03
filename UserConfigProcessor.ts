@@ -12,8 +12,11 @@ export class UserConfigProcessor {
     userConfigs.forEach((config) => this.process(config));
   }
 
-  async process({ link, transportName, remindInMinutes }: UserConfig) {
-    const response = await fetch(link);
+  async process({ busstop, transportName, remindInMinutes }: UserConfig) {
+    const url = new URL("http://qr.minsktrans.by:13282/lookout/board");
+    url.searchParams.append("busstop", busstop);
+    const response = await fetch(url);
+
     if (!response.ok) {
       throw new Error(
         `Minsktrans API error! status: ${response.status} ${response.statusText}`,

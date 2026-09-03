@@ -14,9 +14,9 @@ const config: ServiceConfig = {
 
 const mockUserConfigs: UserConfig[] = [
   {
-    link: "http://qr.minsktrans.by:13282/lookout/board?busstop=46226",
+    busstop: "46226",
     transportName: "TP3",
-    remindInMinutes: 10,
+    remindInMinutes: 20,
   },
 ];
 
