@@ -1,8 +1,12 @@
 import type { LinkedomParser } from "./infrastructure/Parser";
 import type { UserConfig } from "./infrastructure/UserConfig";
+import type { UserReminder } from "./UserReminder";
 
 export class UserConfigProcessor {
-  constructor(private httpParser: LinkedomParser) {}
+  constructor(
+    private httpParser: LinkedomParser,
+    private UserReminder: UserReminder,
+  ) {}
 
   async processAll(userConfigs: UserConfig[]) {
     userConfigs.forEach((config) => this.process(config));
@@ -20,10 +24,26 @@ export class UserConfigProcessor {
 
     const transports = this.httpParser.parse(htmlString);
 
-    const neededTransports = transports.filter((transport) => {
-      return transport.name === transportName;
-    });
+    const neededTransports = transports
+      .filter(({ name }) => {
+        return name === transportName;
+      })
+      .filter(({ minutes }) =>
+        [...minutes].some((minute) => {
+          return minute < remindInMinutes;
+        }),
+      )
+      .map((transport) => {
+        return {
+          ...transport,
+          minutes: new Set(
+            [...transport.minutes].filter((minute) => {
+              return minute < remindInMinutes;
+            }),
+          ),
+        };
+      });
 
-    console.log(neededTransports);
+    this.UserReminder.remind(neededTransports);
   }
 }
