@@ -63,9 +63,7 @@ export class TelegramBot {
         remindInMinutes,
       };
 
-      const userReminders = this.reminderService.get(userId);
-      userReminders.push(newReminder);
-      this.reminderService.set(userId, userReminders);
+      this.reminderService.add(userId, newReminder);
 
       ctx.reply(
         `✅ Напоминание успешно добавлено!\nОстановка: ${busstop}, Транспорт: ${transportName}`,

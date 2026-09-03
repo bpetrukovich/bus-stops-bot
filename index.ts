@@ -2,7 +2,9 @@ import { IntervalPoller } from "./infrastructure/IntervalPoller";
 import { LoggingUserReminder } from "./infrastructure/LoggingUserReminder";
 import { MinsktransApi } from "./infrastructure/minsktransApi";
 import { LinkedomParser } from "./infrastructure/Parser";
+import { TelegramBot } from "./infrastructure/telegramBot";
 import type { UserReminderConfig } from "./infrastructure/UserReminderConfig";
+import { ReminderService } from "./ReminderService";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 
 interface ServiceConfig {
@@ -21,18 +23,24 @@ const mockUserConfigs: UserReminderConfig[] = [
   },
 ];
 
-const loggingUserReminder = new LoggingUserReminder();
+const minsktransApi = new MinsktransApi();
 
-const userConfigProcessor = new UserConfigProcessor(
-  new LinkedomParser(),
-  loggingUserReminder,
-  new MinsktransApi(),
-);
+const bot = new TelegramBot(new ReminderService(minsktransApi));
 
-const poller = new IntervalPoller(
-  userConfigProcessor,
-  mockUserConfigs,
-  config.pollingIntervalSeconds,
-);
+bot.start();
 
-poller.start();
+// const loggingUserReminder = new LoggingUserReminder();
+//
+// const userConfigProcessor = new UserConfigProcessor(
+//   new LinkedomParser(),
+//   loggingUserReminder,
+//   minsktransApi,
+// );
+//
+// const poller = new IntervalPoller(
+//   userConfigProcessor,
+//   mockUserConfigs,
+//   config.pollingIntervalSeconds,
+// );
+//
+// poller.start();
