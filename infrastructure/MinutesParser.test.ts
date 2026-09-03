@@ -16,6 +16,10 @@ test("-", () => {
   expect(MinutesParser.parse("-")).toBe(null);
 });
 
+test("приб.", () => {
+  expect(MinutesParser.parse("приб.")).toBe(null);
+});
+
 test("unexpected format", () => {
   expect(MinutesParser.parse("wbejlba")).toBe(null);
   expect(MinutesParser.parse("0 мин.")).toBe(null);

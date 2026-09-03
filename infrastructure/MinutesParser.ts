@@ -1,6 +1,6 @@
 export const MinutesParser = {
   /**
-   * "<1 мин." or "X мин." or "-"
+   * "<1 мин." or "X мин." or "-" or "приб."
    */
   parse(minutes: string): number | null {
     if (minutes === "-") {
