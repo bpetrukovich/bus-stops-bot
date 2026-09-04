@@ -16,8 +16,8 @@ export interface UserReminderConfigDto {
 
 export interface ReminderRepository {
   getForUser(userId: number): UserReminderConfig[];
-  add(userId: number, userConfig: UserReminderConfig): void;
-  remove(key: UserReminderConfigKey): void;
+  add(userId: number, userConfig: UserReminderConfigDto): void;
+  remove(userId:number, key: number): void;
 }
 
 export class WrongBusstopError extends Error {
@@ -47,7 +47,7 @@ export class AppService {
     return busStopName;
   }
 
-  remove(key: UserReminderConfigKey) {
-    this.reminderRepository.remove(key);
+  remove(userId: number, key: number) {
+    this.reminderRepository.remove(userId, key);
   }
 }

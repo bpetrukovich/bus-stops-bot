@@ -4,6 +4,7 @@ import {
   type AppService,
   type UserReminderConfigDto,
 } from "../application/AppService";
+import { ReminderDoesNotExistError } from "./ReminderRepository";
 
 export class TelegramBot {
   constructor(private reminderService: AppService) {}
@@ -16,6 +17,8 @@ export class TelegramBot {
     // Format: /add_reminder <busstop> <transport> <minutes>
     bot.command("add_reminder", (ctx) => this.handleAddReminder(ctx));
 
+    bot.command("remove_reminder", (ctx) => this.handleRemoveReminder(ctx));
+
     bot.command("start_reminders", (ctx) => this.handleStartReminders(ctx));
 
     bot.command("stop_reminders", (ctx) => this.handleStopReminders(ctx));
@@ -23,6 +26,43 @@ export class TelegramBot {
     bot.start();
 
     console.log("Bot started");
+  }
+
+  handleRemoveReminder(ctx: CommandContext<Context>): unknown {
+    const userId = ctx.from?.id;
+    if (!userId) return;
+
+    const args = ctx.match.trim().split(/\s+/);
+
+    if (args.length < 1 || !ctx.match) {
+      return ctx.reply(
+        "❌ Неверный формат! Используйте команду так:\n/remove_reminder 2",
+        { parse_mode: "Markdown" },
+      );
+    }
+
+    const [keyStr] = args;
+    if (!keyStr) {
+      return ctx.reply(
+        "❌ Неверный формат! Используйте команду так:\n/remove_reminder 2",
+        { parse_mode: "Markdown" },
+      );
+    }
+    const key = parseInt(keyStr, 10);
+
+    if (isNaN(key)) {
+      return ctx.reply("❌ Номер напоминания должен быть числом.");
+    }
+
+    try {
+      this.reminderService.remove(userId, key);
+
+      ctx.reply(`✅ Напоминание ${key} успешно удалено!`);
+    } catch (e) {
+      if (e instanceof ReminderDoesNotExistError) {
+        return ctx.reply("❌ Напоминание с таким номером не существует.");
+      }
+    }
   }
 
   handleStopReminders(ctx: CommandContext<Context>): unknown {
@@ -100,7 +140,6 @@ export class TelegramBot {
         `✅ Напоминание успешно добавлено!\nОстановка: ${stopName} (${busstop}), Транспорт: ${transportName}\nНапомнить за ${remindInMinutes} мин.`,
       );
     } catch (e) {
-      console.error(e);
       if (e instanceof WrongBusstopError) {
         return ctx.reply("❌ Неверный номер остановки.");
       }

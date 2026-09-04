@@ -17,14 +17,6 @@ const config: ServiceConfig = {
   pollingIntervalSeconds: 10,
 };
 
-const mockUserConfigs: UserReminderConfig[] = [
-  {
-    busstop: "46226",
-    transportName: "TP3",
-    remindInMinutes: 20,
-  },
-];
-
 const minsktransApi = new MinsktransApi();
 
 const reminderRepository = new ReminderRepositoryImpl();
