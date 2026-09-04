@@ -20,15 +20,7 @@ export class UserConfigProcessor {
   ) {
     const htmlString = await this.minsktransApi.getBusStop(busstop);
 
-    let parsedTransports = this.httpParser.parse(htmlString);
-    parsedTransports = [
-      {
-        stopName: "Теартальный",
-        name: "ТР3",
-        destination: "",
-        minutes: new Set([10, 15]),
-      },
-    ];
+    const parsedTransports = this.httpParser.parse(htmlString);
 
     const transports = parsedTransports.map((transport) => {
       return {
