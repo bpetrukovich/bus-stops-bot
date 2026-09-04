@@ -14,9 +14,9 @@ export class IntervalPoller {
     if (existingInterval) {
       throw new Error("Interval poller already started");
     }
-    this.userConfigProcessor.processAll(userConfigs);
+    this.userConfigProcessor.processAll(userId, userConfigs);
     const interval = setInterval(async () => {
-      this.userConfigProcessor.processAll(userConfigs);
+      this.userConfigProcessor.processAll(userId, userConfigs);
     }, this.intervalSeconds * 1000);
 
     console.log(

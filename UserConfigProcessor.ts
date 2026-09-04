@@ -10,18 +10,25 @@ export class UserConfigProcessor {
     private minsktransApi: MinsktransApi,
   ) {}
 
-  async processAll(userConfigs: UserReminderConfig[]) {
-    userConfigs.forEach((config) => this.process(config));
+  async processAll(userId: number, userConfigs: UserReminderConfig[]) {
+    userConfigs.forEach((config) => this.process(userId, config));
   }
 
-  async process({
-    busstop,
-    transportName,
-    remindInMinutes,
-  }: UserReminderConfig) {
+  async process(
+    userId: number,
+    { busstop, transportName, remindInMinutes }: UserReminderConfig,
+  ) {
     const htmlString = await this.minsktransApi.getBusStop(busstop);
 
-    const parsedTransports = this.httpParser.parse(htmlString);
+    let parsedTransports = this.httpParser.parse(htmlString);
+    parsedTransports = [
+      {
+        stopName: "Теартальный",
+        name: "ТР3",
+        destination: "",
+        minutes: new Set([10, 15]),
+      },
+    ];
 
     const transports = parsedTransports.map((transport) => {
       return {
@@ -50,6 +57,6 @@ export class UserConfigProcessor {
         };
       });
 
-    this.UserReminder.remind(neededTransports);
+    this.UserReminder.remind(userId, neededTransports);
   }
 }

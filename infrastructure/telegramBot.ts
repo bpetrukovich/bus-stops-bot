@@ -10,30 +10,32 @@ import {
 } from "./ReminderRepository";
 import { PollerService } from "../application/PollerService";
 import { ParsingError } from "./Parser";
+import type { MessageSender } from "./MessageSender";
 
 export class TelegramBot {
   constructor(
+    private bot: Bot,
     private appService: AppService,
     private pollerService: PollerService,
   ) {}
 
   async start() {
-    const bot = new Bot(Bun.env.BOT_TOKEN!);
-
-    bot.command("my_reminders", (ctx) => this.handleMyReminders(ctx));
+    this.bot.command("my_reminders", (ctx) => this.handleMyReminders(ctx));
 
     // Format: /add_reminder <busstop> <transport> <minutes>
-    bot.command("add_reminder", (ctx) => this.handleAddReminder(ctx));
+    this.bot.command("add_reminder", (ctx) => this.handleAddReminder(ctx));
 
-    bot.command("remove_reminder", (ctx) => this.handleRemoveReminder(ctx));
+    this.bot.command("remove_reminder", (ctx) =>
+      this.handleRemoveReminder(ctx),
+    );
 
-    bot.command("remove_all", (ctx) => this.handleRemoveAll(ctx));
+    this.bot.command("remove_all", (ctx) => this.handleRemoveAll(ctx));
 
-    bot.command("start_reminders", (ctx) => this.handleStartReminders(ctx));
+    this.bot.command("start_reminders", (ctx) =>
+      this.handleStartReminders(ctx),
+    );
 
-    bot.command("stop_reminders", (ctx) => this.handleStopReminders(ctx));
-
-    bot.start();
+    this.bot.command("stop_reminders", (ctx) => this.handleStopReminders(ctx));
 
     console.log("Bot started");
   }
