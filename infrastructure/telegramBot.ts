@@ -8,9 +8,14 @@ import {
   ReminderDoesNotExistError,
   RemindersNotFoundForUserError,
 } from "./ReminderRepository";
+import { PollerService } from "../application/PollerService";
+import { ParsingError } from "./Parser";
 
 export class TelegramBot {
-  constructor(private reminderService: AppService) {}
+  constructor(
+    private appService: AppService,
+    private pollerService: PollerService,
+  ) {}
 
   async start() {
     const bot = new Bot(Bun.env.BOT_TOKEN!);
@@ -38,7 +43,7 @@ export class TelegramBot {
     if (!userId) return;
 
     try {
-      this.reminderService.removeAll(userId);
+      this.appService.removeAll(userId);
 
       ctx.reply(`✅ Напоминания успешно удалены!`);
     } catch (e) {
@@ -84,7 +89,7 @@ export class TelegramBot {
     }
 
     try {
-      this.reminderService.remove(userId, key);
+      this.appService.remove(userId, key);
 
       ctx.reply(`✅ Напоминание ${key} успешно удалено!`);
     } catch (e) {
@@ -95,24 +100,25 @@ export class TelegramBot {
     }
   }
 
-  handleStopReminders(ctx: CommandContext<Context>): unknown {
+  handleStopReminders(ctx: CommandContext<Context>): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    throw new Error("Method not implemented.");
+    this.pollerService.stop(userId);
   }
-  handleStartReminders(ctx: CommandContext<Context>): unknown {
+
+  handleStartReminders(ctx: CommandContext<Context>): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    throw new Error("Method not implemented.");
+    this.pollerService.start(userId);
   }
 
   async handleMyReminders(ctx: CommandContext<Context>) {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    const reminders = this.reminderService.getForUser(userId);
+    const reminders = this.appService.getForUser(userId);
 
     if (reminders.length === 0) {
       return ctx.reply("У вас пока нет сохраненных напоминаний.");
@@ -130,30 +136,33 @@ export class TelegramBot {
     });
   }
 
-  async handleAddReminder(ctx: CommandContext<Context>) {
+  async handleAddReminder(ctx: CommandContext<Context>): Promise<void> {
     const userId = ctx.from?.id;
     if (!userId) return;
 
     const args = ctx.match.trim().split(/\s+/);
 
     if (args.length < 3 || !ctx.match) {
-      return ctx.reply(
+      ctx.reply(
         "❌ Неверный формат! Используйте команду так:\n/add_reminder 46226 TP3 20",
         { parse_mode: "Markdown" },
       );
+      return;
     }
 
     const [busstop, transportName, remindStr] = args;
     if (!busstop || !transportName || !remindStr) {
-      return ctx.reply(
+      ctx.reply(
         "❌ Неверный формат! Используйте команду так:\n/add_reminder 46226 TP3 20",
         { parse_mode: "Markdown" },
       );
+      return;
     }
     const remindInMinutes = parseInt(remindStr, 10);
 
     if (isNaN(remindInMinutes)) {
-      return ctx.reply("❌ Время напоминания (минуты) должно быть числом.");
+      ctx.reply("❌ Время напоминания (минуты) должно быть числом.");
+      return;
     }
 
     const newReminderDto: UserReminderConfigDto = {
@@ -164,14 +173,19 @@ export class TelegramBot {
     };
 
     try {
-      const stopName = await this.reminderService.add(newReminderDto);
+      const stopName = await this.appService.add(newReminderDto);
 
       ctx.reply(
         `✅ Напоминание успешно добавлено!\nОстановка: ${stopName} (${busstop}), Транспорт: ${transportName}\nНапомнить за ${remindInMinutes} мин.`,
       );
     } catch (e) {
+      console.error(e);
       if (e instanceof WrongBusstopError) {
-        return ctx.reply("❌ Неверный номер остановки.");
+        ctx.reply("❌ Неверный номер остановки.");
+        return;
+      }
+      if (e instanceof ParsingError) {
+        ctx.reply("❌ Неверный формат ответа минского транспорта.");
       }
     }
   }

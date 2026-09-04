@@ -3,7 +3,7 @@ import type { ParsedTransport } from "../Transport";
 import { MinutesParser } from "./MinutesParser";
 import { WrongBusstopError } from "../application/AppService";
 
-class ParsingError extends Error {
+export class ParsingError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ParsingError";
@@ -20,6 +20,10 @@ export class LinkedomParser {
     const infoLines = document.querySelectorAll(".info .info-line");
 
     const transports: ParsedTransport[] = [];
+
+    if (infoLines.length === 0) {
+      return [];
+    }
 
     for (let i = 0; i < infoLines.length; i++) {
       const line = infoLines[i];
@@ -92,13 +96,6 @@ export class LinkedomParser {
     if (!stopName) {
       throw new ParsingError(
         "The '.stop-name' element is empty or missing text content.",
-      );
-    }
-
-    const infoLines = document.querySelectorAll(".info .info-line");
-    if (infoLines.length === 0) {
-      throw new ParsingError(
-        "No transport rows matching '.info .info-line' were found.",
       );
     }
   }

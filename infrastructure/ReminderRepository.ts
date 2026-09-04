@@ -90,7 +90,9 @@ export class ReminderRepositoryImpl implements ReminderRepository {
     const userData = this.dbPerUser.get(userId);
 
     if (!userData) {
-      throw new RemindersNotFoundForUserError(`User with id ${userId} not found`);
+      throw new RemindersNotFoundForUserError(
+        `User with id ${userId} not found`,
+      );
     }
 
     this.dbPerUser.delete(userId);

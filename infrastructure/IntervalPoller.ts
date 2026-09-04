@@ -1,27 +1,37 @@
 import type { UserConfigProcessor } from "../UserConfigProcessor";
+import type { IntervalPollerRepository } from "./IntervalPollerRepository";
 import type { UserReminderConfig } from "./UserReminderConfig";
 
 export class IntervalPoller {
-  interval: ReturnType<typeof setInterval> | undefined;
-
   constructor(
     private userConfigProcessor: UserConfigProcessor,
-    private userConfigs: UserReminderConfig[],
+    private intervalPollerRepository: IntervalPollerRepository,
     private intervalSeconds: number,
   ) {}
 
-  start() {
-    this.userConfigProcessor.processAll(this.userConfigs);
-    this.interval = setInterval(async () => {
-      this.userConfigProcessor.processAll(this.userConfigs);
+  start(userId: number, userConfigs: UserReminderConfig[]) {
+    const existingInterval = this.intervalPollerRepository.get(userId);
+    if (existingInterval) {
+      throw new Error("Interval poller already started");
+    }
+    this.userConfigProcessor.processAll(userConfigs);
+    const interval = setInterval(async () => {
+      this.userConfigProcessor.processAll(userConfigs);
     }, this.intervalSeconds * 1000);
 
     console.log(
       `Interval poller started with interval ${this.intervalSeconds} seconds`,
     );
+
+    this.intervalPollerRepository.set(userId, interval);
   }
 
-  stop() {
-    clearInterval(this.interval);
+  stop(userId: number) {
+    const interval = this.intervalPollerRepository.get(userId);
+    if (!interval) {
+      throw new Error("Interval poller is not started");
+    }
+    clearInterval(interval);
+    this.intervalPollerRepository.remove(userId);
   }
 }

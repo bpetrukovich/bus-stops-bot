@@ -8,6 +8,8 @@ import { AppService } from "./application/AppService";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
 import { StopNameResolver } from "./infrastructure/StopNameResolver";
+import { PollerService } from "./application/PollerService";
+import { IntervalPollerRepository } from "./infrastructure/IntervalPollerRepository";
 
 interface ServiceConfig {
   pollingIntervalSeconds: number;
@@ -25,24 +27,27 @@ const parser = new LinkedomParser();
 
 const stopNameResolver = new StopNameResolver(minsktransApi, parser);
 
+const loggingUserReminder = new LoggingUserReminder();
+
+const userConfigProcessor = new UserConfigProcessor(
+  new LinkedomParser(),
+  loggingUserReminder,
+  minsktransApi,
+);
+
+const intervalPollerRepository = new IntervalPollerRepository();
+
+const poller = new IntervalPoller(
+  userConfigProcessor,
+  intervalPollerRepository,
+  config.pollingIntervalSeconds,
+);
+
+const pollerService = new PollerService(poller, reminderRepository);
+
 const bot = new TelegramBot(
   new AppService(reminderRepository, stopNameResolver),
+  pollerService,
 );
 
 bot.start();
-
-// const loggingUserReminder = new LoggingUserReminder();
-//
-// const userConfigProcessor = new UserConfigProcessor(
-//   new LinkedomParser(),
-//   loggingUserReminder,
-//   minsktransApi,
-// );
-//
-// const poller = new IntervalPoller(
-//   userConfigProcessor,
-//   mockUserConfigs,
-//   config.pollingIntervalSeconds,
-// );
-//
-// poller.start();
