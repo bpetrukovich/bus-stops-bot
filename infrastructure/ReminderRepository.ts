@@ -14,6 +14,13 @@ export class ReminderDoesNotExistError extends Error {
   }
 }
 
+export class RemindersNotFoundForUserError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RemindersNotFoundForUserError";
+  }
+}
+
 export class ReminderRepositoryImpl implements ReminderRepository {
   private dbPerUser = new Map<
     number,
@@ -77,5 +84,15 @@ export class ReminderRepositoryImpl implements ReminderRepository {
     if (userData.configs.length === 0) {
       this.dbPerUser.delete(userId);
     }
+  }
+
+  removeAll(userId: number): void {
+    const userData = this.dbPerUser.get(userId);
+
+    if (!userData) {
+      throw new RemindersNotFoundForUserError(`User with id ${userId} not found`);
+    }
+
+    this.dbPerUser.delete(userId);
   }
 }

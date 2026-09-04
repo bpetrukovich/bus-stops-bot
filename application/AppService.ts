@@ -50,4 +50,8 @@ export class AppService {
   remove(userId: number, key: number) {
     this.reminderRepository.remove(userId, key);
   }
+
+  removeAll(userId: number) {
+    this.reminderRepository.removeAll(userId);
+  }
 }

@@ -4,7 +4,10 @@ import {
   type AppService,
   type UserReminderConfigDto,
 } from "../application/AppService";
-import { ReminderDoesNotExistError } from "./ReminderRepository";
+import {
+  ReminderDoesNotExistError,
+  RemindersNotFoundForUserError,
+} from "./ReminderRepository";
 
 export class TelegramBot {
   constructor(private reminderService: AppService) {}
@@ -19,6 +22,8 @@ export class TelegramBot {
 
     bot.command("remove_reminder", (ctx) => this.handleRemoveReminder(ctx));
 
+    bot.command("remove_all", (ctx) => this.handleRemoveAll(ctx));
+
     bot.command("start_reminders", (ctx) => this.handleStartReminders(ctx));
 
     bot.command("stop_reminders", (ctx) => this.handleStopReminders(ctx));
@@ -28,30 +33,54 @@ export class TelegramBot {
     console.log("Bot started");
   }
 
-  handleRemoveReminder(ctx: CommandContext<Context>): unknown {
+  handleRemoveAll(ctx: CommandContext<Context>): void {
+    const userId = ctx.from?.id;
+    if (!userId) return;
+
+    try {
+      this.reminderService.removeAll(userId);
+
+      ctx.reply(`✅ Напоминания успешно удалены!`);
+    } catch (e) {
+      if (e instanceof RemindersNotFoundForUserError) {
+        ctx.reply(
+          "❌ Нет ни одного напоминания или не удалось найти данные пользователя.",
+        );
+        return;
+      }
+      ctx.reply("❌ Ошибка при удалении всех напоминаний.");
+      return;
+    }
+  }
+
+  handleRemoveReminder(ctx: CommandContext<Context>): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
     const args = ctx.match.trim().split(/\s+/);
 
     if (args.length < 1 || !ctx.match) {
-      return ctx.reply(
+      ctx.reply(
         "❌ Неверный формат! Используйте команду так:\n/remove_reminder 2",
         { parse_mode: "Markdown" },
       );
+      return;
     }
 
     const [keyStr] = args;
     if (!keyStr) {
-      return ctx.reply(
+      ctx.reply(
         "❌ Неверный формат! Используйте команду так:\n/remove_reminder 2",
         { parse_mode: "Markdown" },
       );
+      return;
     }
+
     const key = parseInt(keyStr, 10);
 
     if (isNaN(key)) {
-      return ctx.reply("❌ Номер напоминания должен быть числом.");
+      ctx.reply("❌ Номер напоминания должен быть числом.");
+      return;
     }
 
     try {
@@ -60,7 +89,8 @@ export class TelegramBot {
       ctx.reply(`✅ Напоминание ${key} успешно удалено!`);
     } catch (e) {
       if (e instanceof ReminderDoesNotExistError) {
-        return ctx.reply("❌ Напоминание с таким номером не существует.");
+        ctx.reply("❌ Напоминание с таким номером не существует.");
+        return;
       }
     }
   }
