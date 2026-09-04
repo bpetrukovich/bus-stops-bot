@@ -1,6 +1,7 @@
 import { DOMParser } from "linkedom";
 import type { ParsedTransport } from "../Transport";
 import { MinutesParser } from "./MinutesParser";
+import { WrongBusstopError } from "../application/AppService";
 
 class ParsingError extends Error {
   constructor(message: string) {
@@ -12,30 +13,13 @@ class ParsingError extends Error {
 export class LinkedomParser {
   parse(htmlString: string): ParsedTransport[] {
     const document = new DOMParser().parseFromString(htmlString, "text/html");
-    if (!document) {
-      throw new ParsingError("Failed to parse HTML document.");
-    }
 
-    const stopNameElement = document.querySelector(".stop-name");
-    if (!stopNameElement) {
-      throw new ParsingError("Required element '.stop-name' was not found.");
-    }
+    this.validate(document);
 
-    const stopName = stopNameElement.textContent?.trim();
-    if (!stopName) {
-      throw new ParsingError(
-        "The '.stop-name' element is empty or missing text content.",
-      );
-    }
+    const stopName = document.querySelector(".stop-name").textContent.trim();
+    const infoLines = document.querySelectorAll(".info .info-line");
 
     const transports: ParsedTransport[] = [];
-
-    const infoLines = document.querySelectorAll(".info .info-line");
-    if (infoLines.length === 0) {
-      throw new ParsingError(
-        "No transport rows matching '.info .info-line' were found.",
-      );
-    }
 
     for (let i = 0; i < infoLines.length; i++) {
       const line = infoLines[i];
@@ -80,5 +64,42 @@ export class LinkedomParser {
     }
 
     return transports;
+  }
+
+  getStopName(htmlString: string): string {
+    const document = new DOMParser().parseFromString(htmlString, "text/html");
+    this.validate(document);
+
+    return document.querySelector(".stop-name").textContent.trim();
+  }
+
+  validate(document: any): void {
+    if (!document) {
+      throw new ParsingError("Failed to parse HTML document.");
+    }
+
+    const errorElement = document.querySelector(".err-head");
+    if (errorElement) {
+      throw new WrongBusstopError(`Wrong busstop.`);
+    }
+
+    const stopNameElement = document.querySelector(".stop-name");
+    if (!stopNameElement) {
+      throw new ParsingError("Required element '.stop-name' was not found.");
+    }
+
+    const stopName = stopNameElement.textContent?.trim();
+    if (!stopName) {
+      throw new ParsingError(
+        "The '.stop-name' element is empty or missing text content.",
+      );
+    }
+
+    const infoLines = document.querySelectorAll(".info .info-line");
+    if (infoLines.length === 0) {
+      throw new ParsingError(
+        "No transport rows matching '.info .info-line' were found.",
+      );
+    }
   }
 }

@@ -14,7 +14,11 @@ export class UserConfigProcessor {
     userConfigs.forEach((config) => this.process(config));
   }
 
-  async process({ busstop, transportName, remindInMinutes }: UserReminderConfig) {
+  async process({
+    busstop,
+    transportName,
+    remindInMinutes,
+  }: UserReminderConfig) {
     const htmlString = await this.minsktransApi.getBusStop(busstop);
 
     const parsedTransports = this.httpParser.parse(htmlString);

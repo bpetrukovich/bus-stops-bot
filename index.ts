@@ -7,6 +7,7 @@ import type { UserReminderConfig } from "./infrastructure/UserReminderConfig";
 import { AppService } from "./application/AppService";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
+import { StopNameResolver } from "./infrastructure/StopNameResolver";
 
 interface ServiceConfig {
   pollingIntervalSeconds: number;
@@ -28,7 +29,13 @@ const minsktransApi = new MinsktransApi();
 
 const reminderRepository = new ReminderRepositoryImpl();
 
-const bot = new TelegramBot(new AppService(reminderRepository, minsktransApi));
+const parser = new LinkedomParser();
+
+const stopNameResolver = new StopNameResolver(minsktransApi, parser);
+
+const bot = new TelegramBot(
+  new AppService(reminderRepository, stopNameResolver),
+);
 
 bot.start();
 

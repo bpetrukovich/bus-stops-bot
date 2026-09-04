@@ -1,4 +1,4 @@
-import type { MinsktransApi } from "../infrastructure/minsktransApi";
+import type { StopNameResolver } from "../infrastructure/StopNameResolver";
 import type { UserReminderConfig } from "../infrastructure/UserReminderConfig";
 
 export interface UserReminderConfigKey {
@@ -20,20 +20,31 @@ export interface ReminderRepository {
   remove(key: UserReminderConfigKey): void;
 }
 
+export class WrongBusstopError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "WrongBusstopError";
+  }
+}
+
 export class AppService {
   constructor(
     private reminderRepository: ReminderRepository,
-    private minsktransApi: MinsktransApi,
+    private stopNameResolver: StopNameResolver,
   ) {}
 
   getForUser(userId: number): UserReminderConfig[] {
     return this.reminderRepository.getForUser(userId);
   }
 
-  add(userConfig: UserReminderConfigDto) {
-    this.minsktransApi.tryBusStop(userConfig.busstop);
+  async add(userConfig: UserReminderConfigDto): Promise<string> {
+    const busStopName = await this.stopNameResolver.getStopName(
+      userConfig.busstop,
+    );
 
     this.reminderRepository.add(userConfig.userId, userConfig);
+
+    return busStopName;
   }
 
   remove(key: UserReminderConfigKey) {
