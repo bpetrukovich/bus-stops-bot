@@ -6,6 +6,7 @@ import { TelegramBot } from "./infrastructure/telegramBot";
 import type { UserReminderConfig } from "./infrastructure/UserReminderConfig";
 import { AppService } from "./application/AppService";
 import { UserConfigProcessor } from "./UserConfigProcessor";
+import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
 
 interface ServiceConfig {
   pollingIntervalSeconds: number;
@@ -25,7 +26,9 @@ const mockUserConfigs: UserReminderConfig[] = [
 
 const minsktransApi = new MinsktransApi();
 
-const bot = new TelegramBot(new AppService(minsktransApi));
+const reminderRepository = new ReminderRepositoryImpl();
+
+const bot = new TelegramBot(new AppService(reminderRepository, minsktransApi));
 
 bot.start();
 

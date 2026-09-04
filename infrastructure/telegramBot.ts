@@ -1,6 +1,8 @@
 import { Bot } from "grammy";
-import type { AppService } from "../application/AppService";
-import type { UserReminderConfig } from "./UserReminderConfig";
+import type {
+  AppService,
+  UserReminderConfigDto,
+} from "../application/AppService";
 
 export class TelegramBot {
   constructor(private reminderService: AppService) {}
@@ -12,7 +14,7 @@ export class TelegramBot {
       const userId = ctx.from?.id;
       if (!userId) return;
 
-      const reminders = this.reminderService.get(userId);
+      const reminders = this.reminderService.getForUser(userId);
 
       if (reminders.length === 0) {
         return ctx.reply("У вас пока нет сохраненных напоминаний.");
@@ -57,13 +59,14 @@ export class TelegramBot {
         return ctx.reply("❌ Время напоминания (минуты) должно быть числом.");
       }
 
-      const newReminder: UserReminderConfig = {
+      const newReminderDto: UserReminderConfigDto = {
+        userId,
         busstop,
         transportName,
         remindInMinutes,
       };
 
-      this.reminderService.add(userId, newReminder);
+      this.reminderService.add(newReminderDto);
 
       ctx.reply(
         `✅ Напоминание успешно добавлено!\nОстановка: ${busstop}, Транспорт: ${transportName}`,
