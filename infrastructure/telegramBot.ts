@@ -1,9 +1,9 @@
 import { Bot } from "grammy";
-import type { ReminderService } from "../ReminderService";
+import type { AppService } from "../application/AppService";
 import type { UserReminderConfig } from "./UserReminderConfig";
 
 export class TelegramBot {
-  constructor(private reminderService: ReminderService) {}
+  constructor(private reminderService: AppService) {}
 
   async start() {
     const bot = new Bot(Bun.env.BOT_TOKEN!);

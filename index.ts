@@ -4,7 +4,7 @@ import { MinsktransApi } from "./infrastructure/minsktransApi";
 import { LinkedomParser } from "./infrastructure/Parser";
 import { TelegramBot } from "./infrastructure/telegramBot";
 import type { UserReminderConfig } from "./infrastructure/UserReminderConfig";
-import { ReminderService } from "./ReminderService";
+import { AppService } from "./application/AppService";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 
 interface ServiceConfig {
@@ -25,7 +25,7 @@ const mockUserConfigs: UserReminderConfig[] = [
 
 const minsktransApi = new MinsktransApi();
 
-const bot = new TelegramBot(new ReminderService(minsktransApi));
+const bot = new TelegramBot(new AppService(minsktransApi));
 
 bot.start();
 

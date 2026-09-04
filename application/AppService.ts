@@ -1,7 +1,7 @@
-import type { MinsktransApi } from "./infrastructure/minsktransApi";
-import type { UserReminderConfig } from "./infrastructure/UserReminderConfig";
+import type { MinsktransApi } from "../infrastructure/minsktransApi";
+import type { UserReminderConfig } from "../infrastructure/UserReminderConfig";
 
-export class ReminderService {
+export class AppService {
   constructor(private minsktransApi: MinsktransApi) {}
 
   db = new Map<number, UserReminderConfig[]>();
