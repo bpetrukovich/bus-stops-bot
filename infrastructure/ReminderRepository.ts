@@ -16,6 +16,20 @@ export class ReminderRepositoryImpl implements ReminderRepository {
     if (!this.db.has(userId)) {
       this.db.set(userId, []);
     }
+
+    const existingConfigForUser = this.db.get(userId)!;
+
+    const existingConfig = existingConfigForUser.find(
+      (config) =>
+        config.busstop === userConfig.busstop &&
+        config.transportName === userConfig.transportName,
+    );
+
+    if (existingConfig) {
+      existingConfig.remindInMinutes = userConfig.remindInMinutes;
+      return;
+    }
+
     this.db.set(userId, [...this.db.get(userId)!, userConfig]);
   }
 

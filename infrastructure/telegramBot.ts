@@ -1,7 +1,8 @@
 import { Bot, Context, type CommandContext } from "grammy";
-import type {
-  AppService,
-  UserReminderConfigDto,
+import {
+  WrongBusstopError,
+  type AppService,
+  type UserReminderConfigDto,
 } from "../application/AppService";
 
 export class TelegramBot {
@@ -92,17 +93,17 @@ export class TelegramBot {
       remindInMinutes,
     };
 
-    let stopName: string;
-
     try {
-      stopName = await this.reminderService.add(newReminderDto);
+      const stopName = await this.reminderService.add(newReminderDto);
+
+      ctx.reply(
+        `✅ Напоминание успешно добавлено!\nОстановка: ${stopName} (${busstop}), Транспорт: ${transportName}\nНапомнить за ${remindInMinutes} мин.`,
+      );
     } catch (e) {
       console.error(e);
-      return ctx.reply("❌ Неверный номер остановки.");
+      if (e instanceof WrongBusstopError) {
+        return ctx.reply("❌ Неверный номер остановки.");
+      }
     }
-
-    ctx.reply(
-      `✅ Напоминание успешно добавлено!\nОстановка: ${stopName} (${busstop}), Транспорт: ${transportName}`,
-    );
   }
 }
