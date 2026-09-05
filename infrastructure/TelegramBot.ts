@@ -160,8 +160,8 @@ export class TelegramBot {
 
     const response = reminders
       .map(
-        (r, index) =>
-          `${index + 1}. ${r.isActive ? "" : "🔇 (выключено)"} 🚏 Остановка: *${r.busstop}*, 🚌 Транспорт: *${r.transportName}*, ⏱ Напомнить за *${r.remindInMinutes}* мин.`,
+        (r) =>
+          `${r.key}. ${r.isActive ? "" : "🔇 (выключено)"} 🚏 Остановка: *${r.busstop}*, 🚌 Транспорт: *${r.transportName}*, ⏱ Напомнить за *${r.remindInMinutes}* мин.`,
       )
       .join("\n");
 
