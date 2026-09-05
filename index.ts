@@ -1,10 +1,10 @@
 import { IntervalPoller } from "./infrastructure/IntervalPoller";
 import { LoggingUserReminder } from "./infrastructure/LoggingUserReminder";
-import { MinsktransApi } from "./infrastructure/minsktransApi";
+import { MinsktransApi } from "./infrastructure/MinsktransApi";
 import { LinkedomParser } from "./infrastructure/Parser";
-import { TelegramBot } from "./infrastructure/telegramBot";
+import { TelegramBot } from "./infrastructure/TelegramBot";
 import { AppService } from "./application/AppService";
-import { Service } from "./application/service";
+import { Service } from "./application/Service";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
 import { TelegramBotUserReminder } from "./infrastructure/TelegramBotUserReminder";

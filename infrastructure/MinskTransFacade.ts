@@ -1,5 +1,5 @@
 import type { Transport } from "../Transport";
-import type { MinsktransApi } from "./minsktransApi";
+import type { MinsktransApi } from "./MinsktransApi";
 import type { LinkedomParser } from "./Parser";
 
 export class MinskTransFacade {
