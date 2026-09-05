@@ -1,23 +1,37 @@
+import type { ReminderRepository } from "../application/AppService";
 import type { UserConfigProcessor } from "../UserConfigProcessor";
 import type { IntervalPollerRepository } from "./IntervalPollerRepository";
-import type { UserReminderConfig } from "./UserReminderConfig";
+
+export class NoRemindersForUserError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NoRemindersForUserError";
+  }
+}
 
 export class IntervalPoller {
   constructor(
-    // NOTE: UserConfigProcessor dependency can be removed
+    // NOTE: UserConfigProcessor and ReminderRepository dependencies can be removed
+    private reminderRepository: ReminderRepository,
     private userConfigProcessor: UserConfigProcessor,
     private intervalPollerRepository: IntervalPollerRepository,
     private intervalSeconds: number,
   ) {}
 
-  start(userId: number, userConfigs: UserReminderConfig[]) {
+  start(userId: number) {
+    const userReminders = this.reminderRepository.getForUser(userId);
+    if (!userReminders) {
+      throw new NoRemindersForUserError("User has no reminders");
+    }
+
     const existingInterval = this.intervalPollerRepository.get(userId);
     if (existingInterval) {
       throw new Error("Interval poller already started");
     }
-    this.userConfigProcessor.processAll(userId, userConfigs);
+    this.userConfigProcessor.processAll(userId, userReminders);
     const interval = setInterval(async () => {
-      this.userConfigProcessor.processAll(userId, userConfigs);
+      console.log("Poll...");
+      this.userConfigProcessor.processAll(userId, userReminders);
     }, this.intervalSeconds * 1000);
 
     console.log(

@@ -7,7 +7,6 @@ import { AppService } from "./application/AppService";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
 import { StopNameResolver } from "./infrastructure/StopNameResolver";
-import { PollerService } from "./application/PollerService";
 import { IntervalPollerRepository } from "./infrastructure/IntervalPollerRepository";
 import { TelegramBotUserReminder } from "./infrastructure/TelegramBotUserReminder";
 import { Bot } from "grammy";
@@ -48,17 +47,16 @@ const userConfigProcessor = new UserConfigProcessor(
 const intervalPollerRepository = new IntervalPollerRepository();
 
 const poller = new IntervalPoller(
+  reminderRepository,
   userConfigProcessor,
   intervalPollerRepository,
   config.pollingIntervalSeconds,
 );
 
-const pollerService = new PollerService(poller, reminderRepository);
-
 const bot = new TelegramBot(
   botInstance,
   new AppService(reminderRepository, stopNameResolver),
-  pollerService,
+  poller,
 );
 
 botInstance.start();

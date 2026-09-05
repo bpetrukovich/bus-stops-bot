@@ -8,14 +8,14 @@ import {
   ReminderDoesNotExistError,
   RemindersNotFoundForUserError,
 } from "./ReminderRepository";
-import { PollerService } from "../application/PollerService";
 import { ParsingError } from "./Parser";
+import { NoRemindersForUserError, type IntervalPoller } from "./IntervalPoller";
 
 export class TelegramBot {
   constructor(
     private bot: Bot,
     private appService: AppService,
-    private pollerService: PollerService,
+    private intervalPoller: IntervalPoller,
   ) {}
 
   async start() {
@@ -99,14 +99,24 @@ export class TelegramBot {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    this.pollerService.stop(userId);
+    this.intervalPoller.stop(userId);
   }
 
   handleStartReminders(ctx: CommandContext<Context>): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    this.pollerService.start(userId);
+    try {
+      this.intervalPoller.start(userId);
+    } catch (e) {
+      console.error(e);
+      if (e instanceof NoRemindersForUserError) {
+        ctx.reply("У вас пока нет сохраненных напоминаний.");
+        return;
+      }
+      ctx.reply("❌ Ошибка при запуске интервала напоминаний.");
+      return;
+    }
   }
 
   async handleMyReminders(ctx: CommandContext<Context>) {
