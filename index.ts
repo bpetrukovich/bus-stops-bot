@@ -90,3 +90,10 @@ botInstance.start();
 bot.listenCommands();
 
 poller.start(() => syncService.poll());
+
+Bun.serve({
+  port: process.env.PORT || 10000,
+  fetch() {
+    return new Response("works!");
+  },
+});
