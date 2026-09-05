@@ -9,13 +9,11 @@ import {
   RemindersNotFoundForUserError,
 } from "./ReminderRepository";
 import { ParsingError } from "./Parser";
-import { NoRemindersForUserError, type IntervalPoller } from "./IntervalPoller";
 
 export class TelegramBot {
   constructor(
     private bot: Bot,
     private appService: AppService,
-    private intervalPoller: IntervalPoller,
   ) {}
 
   async start() {
@@ -28,9 +26,11 @@ export class TelegramBot {
 
     this.bot.command("remove_all", (ctx) => this.handleRemoveAll(ctx));
 
-    this.bot.command("start", (ctx) => this.handleStartReminders(ctx));
+    // Format: /disable <key>
+    this.bot.command("disable", (ctx) => this.handleSetActive(ctx, false));
 
-    this.bot.command("stop", (ctx) => this.handleStopReminders(ctx));
+    // Format: /enable <key>
+    this.bot.command("enable", (ctx) => this.handleSetActive(ctx, true));
 
     console.log("Bot started");
   }
@@ -95,27 +95,50 @@ export class TelegramBot {
     }
   }
 
-  handleStopReminders(ctx: CommandContext<Context>): void {
+  handleSetActive(
+    ctx: CommandContext<Context>,
+    isActive: boolean,
+  ): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    this.intervalPoller.stop(userId);
-  }
+    const args = ctx.match.trim().split(/\s+/);
 
-  handleStartReminders(ctx: CommandContext<Context>): void {
-    const userId = ctx.from?.id;
-    if (!userId) return;
+    if (args.length < 1 || !ctx.match) {
+      ctx.reply(
+        "❌ Неверный формат! Используйте команду так:\n/disable 2",
+        { parse_mode: "Markdown" },
+      );
+      return;
+    }
+
+    const [keyStr] = args;
+    if (!keyStr) {
+      ctx.reply(
+        "❌ Неверный формат! Используйте команду так:\n/disable 2",
+        { parse_mode: "Markdown" },
+      );
+      return;
+    }
+
+    const key = parseInt(keyStr, 10);
+
+    if (isNaN(key)) {
+      ctx.reply("❌ Номер напоминания должен быть числом.");
+      return;
+    }
 
     try {
-      this.intervalPoller.start(userId);
+      this.appService.setActive(userId, key, isActive);
+
+      const action = isActive ? "включено" : "выключено";
+      ctx.reply(`✅ Напоминание ${key} ${action}!`);
     } catch (e) {
-      console.error(e);
-      if (e instanceof NoRemindersForUserError) {
-        ctx.reply("У вас пока нет сохраненных напоминаний.");
+      if (e instanceof ReminderDoesNotExistError) {
+        ctx.reply("❌ Напоминание с таким номером не существует.");
         return;
       }
-      ctx.reply("❌ Ошибка при запуске интервала напоминаний.");
-      return;
+      ctx.reply("❌ Ошибка при изменении настройки напоминания.");
     }
   }
 
@@ -132,7 +155,7 @@ export class TelegramBot {
     const response = reminders
       .map(
         (r, index) =>
-          `${index + 1}. 🚏 Остановка: *${r.busstop}*, 🚌 Транспорт: *${r.transportName}*, ⏱ Напомнить за *${r.remindInMinutes}* мин.`,
+          `${index + 1}. ${r.isActive ? "" : "🔇 (выключено)"} 🚏 Остановка: *${r.busstop}*, 🚌 Транспорт: *${r.transportName}*, ⏱ Напомнить за *${r.remindInMinutes}* мин.`,
       )
       .join("\n");
 

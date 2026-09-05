@@ -4,10 +4,10 @@ import { MinsktransApi } from "./infrastructure/minsktransApi";
 import { LinkedomParser } from "./infrastructure/Parser";
 import { TelegramBot } from "./infrastructure/telegramBot";
 import { AppService } from "./application/AppService";
+import { Service } from "./application/service";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
 import { StopNameResolver } from "./infrastructure/StopNameResolver";
-import { IntervalPollerRepository } from "./infrastructure/IntervalPollerRepository";
 import { TelegramBotUserReminder } from "./infrastructure/TelegramBotUserReminder";
 import { Bot } from "grammy";
 import { TelegramMessageSender } from "./infrastructure/TelegramMessageSender";
@@ -44,20 +44,17 @@ const userConfigProcessor = new UserConfigProcessor(
   minsktransApi,
 );
 
-const intervalPollerRepository = new IntervalPollerRepository();
+const poller = new IntervalPoller(config.pollingIntervalSeconds);
 
-const poller = new IntervalPoller(
-  reminderRepository,
-  userConfigProcessor,
-  intervalPollerRepository,
-  config.pollingIntervalSeconds,
-);
+const service = new Service(reminderRepository, userConfigProcessor);
 
 const bot = new TelegramBot(
   botInstance,
   new AppService(reminderRepository, stopNameResolver),
-  poller,
 );
 
 botInstance.start();
 bot.start();
+
+poller.start(() => service.poll());
+

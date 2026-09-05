@@ -1,5 +1,5 @@
 import type { StopNameResolver } from "../infrastructure/StopNameResolver";
-import type { UserReminderConfig } from "../infrastructure/UserReminderConfig";
+import type { UserReminderConfigEntity } from "../infrastructure/ReminderRepository";
 
 export interface UserReminderConfigKey {
   userId: number;
@@ -15,10 +15,12 @@ export interface UserReminderConfigDto {
 }
 
 export interface ReminderRepository {
-  getForUser(userId: number): UserReminderConfig[];
+  getForUser(userId: number): UserReminderConfigEntity[];
+  getAllActive(): UserReminderConfigEntity[];
   add(userId: number, userConfig: UserReminderConfigDto): void;
-  remove(userId:number, key: number): void;
+  remove(userId: number, key: number): void;
   removeAll(userId: number): void;
+  setActive(userId: number, key: number, isActive: boolean): void;
 }
 
 export class WrongBusstopError extends Error {
@@ -34,7 +36,7 @@ export class AppService {
     private stopNameResolver: StopNameResolver,
   ) {}
 
-  getForUser(userId: number): UserReminderConfig[] {
+  getForUser(userId: number): UserReminderConfigEntity[] {
     return this.reminderRepository.getForUser(userId);
   }
 
@@ -54,5 +56,9 @@ export class AppService {
 
   removeAll(userId: number) {
     this.reminderRepository.removeAll(userId);
+  }
+
+  setActive(userId: number, key: number, isActive: boolean) {
+    this.reminderRepository.setActive(userId, key, isActive);
   }
 }

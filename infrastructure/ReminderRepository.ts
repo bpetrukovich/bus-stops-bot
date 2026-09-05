@@ -2,7 +2,15 @@ import type {
   ReminderRepository,
   UserReminderConfigDto,
 } from "../application/AppService";
-import type { UserReminderConfig } from "./UserReminderConfig";
+
+export interface UserReminderConfigEntity {
+  busstop: string;
+  transportName: string;
+  remindInMinutes: number;
+  key: number;
+  userId: number;
+  isActive: boolean;
+}
 
 export class ReminderDoesNotExistError extends Error {
   key: number;
@@ -22,79 +30,87 @@ export class RemindersNotFoundForUserError extends Error {
 }
 
 export class ReminderRepositoryImpl implements ReminderRepository {
-  private dbPerUser = new Map<
-    number,
-    { configs: UserReminderConfig[]; maxKey: number }
-  >();
+  private db: UserReminderConfigEntity[] = [];
 
-  private initUserIfAbsent(userId: number) {
-    if (!this.dbPerUser.has(userId)) {
-      this.dbPerUser.set(userId, { configs: [], maxKey: 0 });
-    }
-    return this.dbPerUser.get(userId)!;
+  getForUser(userId: number): UserReminderConfigEntity[] {
+    return this.db.filter((config) => config.userId === userId);
   }
 
-  getForUser(userId: number): UserReminderConfig[] {
-    return this.dbPerUser.get(userId)?.configs || [];
+  getAllActive(): UserReminderConfigEntity[] {
+    return this.db.filter((config) => config.isActive);
   }
 
   add(userId: number, userConfig: UserReminderConfigDto): void {
-    const userData = this.initUserIfAbsent(userId);
-
-    const existingIndex = userData.configs.findIndex(
+    const existingIndex = this.db.findIndex(
       (config) =>
+        config.userId === userId &&
         config.busstop === userConfig.busstop &&
         config.transportName === userConfig.transportName,
     );
 
     if (existingIndex !== -1) {
-      userData.configs = userData.configs.map((config, index) =>
-        index === existingIndex
-          ? { ...config, remindInMinutes: userConfig.remindInMinutes }
-          : config,
-      );
+      const existing = this.db[existingIndex]!;
+      this.db[existingIndex] = {
+        ...existing,
+        remindInMinutes: userConfig.remindInMinutes,
+      };
       return;
     }
 
-    userData.maxKey += 1;
+    const newKey = this.db.length > 0
+      ? Math.max(...this.db.map((c) => c.key), 0) + 1
+      : 1;
 
-    userData.configs = [
-      ...userData.configs,
-      { key: userData.maxKey, ...userConfig },
-    ];
+    this.db.push({
+      key: newKey,
+      userId,
+      isActive: true,
+      busstop: userConfig.busstop,
+      transportName: userConfig.transportName,
+      remindInMinutes: userConfig.remindInMinutes,
+    });
   }
 
   remove(userId: number, key: number): void {
-    const userData = this.dbPerUser.get(userId);
+    const initialLength = this.db.length;
+    this.db = this.db.filter(
+      (config) => !(config.userId === userId && config.key === key),
+    );
 
-    if (!userData) {
-      throw new Error(`User with id ${userId} not found`);
+    if (this.db.length === initialLength) {
+      throw new ReminderDoesNotExistError(
+        `Can't find config for user ${userId} and key ${key}.`,
+        key,
+      );
+    }
+  }
+
+  removeAll(userId: number): void {
+    const userConfigs = this.db.filter(
+      (config) => config.userId === userId,
+    );
+
+    if (userConfigs.length === 0) {
+      throw new RemindersNotFoundForUserError(
+        `User with id ${userId} not found`,
+      );
     }
 
-    const initialLength = userData.configs.length;
-    userData.configs = userData.configs.filter((config) => config.key !== key);
+    this.db = this.db.filter((config) => config.userId !== userId);
+  }
 
-    if (userData.configs.length === initialLength) {
+  setActive(userId: number, key: number, isActive: boolean): void {
+    const existing = this.db.find(
+      (config) => config.userId === userId && config.key === key,
+    );
+
+    if (!existing) {
       throw new ReminderDoesNotExistError(
         `Can't find config for user ${userId} and key ${key}.`,
         key,
       );
     }
 
-    if (userData.configs.length === 0) {
-      this.dbPerUser.delete(userId);
-    }
-  }
-
-  removeAll(userId: number): void {
-    const userData = this.dbPerUser.get(userId);
-
-    if (!userData) {
-      throw new RemindersNotFoundForUserError(
-        `User with id ${userId} not found`,
-      );
-    }
-
-    this.dbPerUser.delete(userId);
+    existing.isActive = isActive;
   }
 }
