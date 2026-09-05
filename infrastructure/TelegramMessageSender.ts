@@ -4,6 +4,6 @@ import type { MessageSender } from "./MessageSender";
 export class TelegramMessageSender implements MessageSender {
   constructor(private api: Api<RawApi>) {}
   sendMessage(userId: number, message: string): void {
-    this.api.sendMessage(userId, message, { parse_mode: "Markdown" });
+    this.api.sendMessage(userId, message, { parse_mode: "HTML" });
   }
 }

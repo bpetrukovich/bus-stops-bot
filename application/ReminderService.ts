@@ -1,6 +1,8 @@
 import type { MinskTransFacade } from "../infrastructure/MinskTransFacade";
 import type { UserReminderConfigEntity } from "../infrastructure/ReminderRepository";
 
+export const MAX_REMINDERS_PER_USER = 5;
+
 export interface UserReminderConfigKey {
   userId: number;
   busstop: string;
@@ -12,6 +14,11 @@ export interface UserReminderConfigDto {
   busstop: string;
   transportName: string;
   remindInMinutes: number;
+}
+
+export interface AddReminderResult {
+  stopName: string;
+  alreadyExisted: boolean;
 }
 
 export interface ReminderRepository {
@@ -30,6 +37,13 @@ export class WrongBusstopError extends Error {
   }
 }
 
+export class MaxRemindersError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MaxRemindersError";
+  }
+}
+
 export class ReminderService {
   constructor(
     private reminderRepository: ReminderRepository,
@@ -40,14 +54,25 @@ export class ReminderService {
     return this.reminderRepository.getForUser(userId);
   }
 
-  async add(userConfig: UserReminderConfigDto): Promise<string> {
-    const busStopName = await this.minskTransFacade.getStopName(
-      userConfig.busstop,
+  async add(userConfig: UserReminderConfigDto): Promise<AddReminderResult> {
+    const stopName = await this.minskTransFacade.getStopName(userConfig.busstop);
+
+    const existing = await this.reminderRepository.getForUser(userConfig.userId);
+    const alreadyExisted = existing.some(
+      (reminder) =>
+        reminder.busstop === userConfig.busstop &&
+        reminder.transportName === userConfig.transportName,
     );
+
+    if (!alreadyExisted && existing.length >= MAX_REMINDERS_PER_USER) {
+      throw new MaxRemindersError(
+        `User ${userConfig.userId} reached the limit of ${MAX_REMINDERS_PER_USER} reminders.`,
+      );
+    }
 
     await this.reminderRepository.add(userConfig.userId, userConfig);
 
-    return busStopName;
+    return { stopName, alreadyExisted };
   }
 
   async remove(userId: number, key: number) {

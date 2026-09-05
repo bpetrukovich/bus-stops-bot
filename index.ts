@@ -13,6 +13,7 @@ import { TelegramMessageSender } from "./infrastructure/TelegramMessageSender";
 import { MinskTransFacade } from "./infrastructure/MinskTransFacade";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { registerBotMetadata } from "./infrastructure/commands/CommandRegistrar";
 
 interface ServiceConfig {
   pollingIntervalSeconds: number;
@@ -69,6 +70,12 @@ const bot = new TelegramBot(
   botInstance,
   new ReminderService(reminderRepository, minskTransFacade),
 );
+
+try {
+  await registerBotMetadata(botInstance.api);
+} catch (error) {
+  console.error("Failed to register bot metadata:", error);
+}
 
 botInstance.start();
 bot.listenCommands();
