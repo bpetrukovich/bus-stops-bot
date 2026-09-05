@@ -1,4 +1,10 @@
-import { Bot, Context, type CommandContext } from "grammy";
+import {
+  Bot,
+  Context,
+  GrammyError,
+  HttpError,
+  type CommandContext,
+} from "grammy";
 import {
   WrongBusstopError,
   type ReminderService,
@@ -17,6 +23,8 @@ export class TelegramBot {
   ) {}
 
   async listenCommands() {
+    this.setupGlobalErrorHandler();
+
     this.bot.command("list", (ctx) => this.handleMyReminders(ctx));
 
     // Format: /add <busstop> <transport> <minutes>
@@ -31,8 +39,6 @@ export class TelegramBot {
 
     // Format: /enable <key>
     this.bot.command("enable", (ctx) => this.handleSetActive(ctx, true));
-
-    console.log("Bot started");
   }
 
   private handleRemoveAll(ctx: CommandContext<Context>): void {
@@ -95,7 +101,10 @@ export class TelegramBot {
     }
   }
 
-  private handleSetActive(ctx: CommandContext<Context>, isActive: boolean): void {
+  private handleSetActive(
+    ctx: CommandContext<Context>,
+    isActive: boolean,
+  ): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
@@ -207,9 +216,44 @@ export class TelegramBot {
         ctx.reply("❌ Неверный номер остановки.");
         return;
       }
-      if (e instanceof ParsingError) {
-        ctx.reply("❌ Неверный формат ответа минского транспорта.");
-      }
     }
+  }
+  private setupGlobalErrorHandler() {
+    this.bot.catch((err) => {
+      const ctx = err.ctx;
+      const error = err.error;
+
+      console.error(`Error then updating ${ctx.update.update_id}:`);
+
+      if (error instanceof GrammyError) {
+        console.error("Error request to Telegram:", error.description);
+        return;
+      }
+
+      if (error instanceof HttpError) {
+        console.error("Can't connect to Telegram:", error);
+        return;
+      }
+
+      if (error instanceof WrongBusstopError) {
+        ctx.reply("❌ Неверный номер остановки.");
+        return;
+      }
+
+      if (error instanceof ParsingError) {
+        ctx.reply(
+          "❌ Неверный формат ответа от минсктранс. Пожалуйста, попробуйте позже.",
+        );
+        return;
+      }
+
+      try {
+        ctx.reply(
+          "❌ Произошла непредвиденная ошибка на сервере. Пожалуйста, попробуйте позже.",
+        );
+      } catch (replyError) {
+        console.error("Error of sending error message:", replyError);
+      }
+    });
   }
 }
