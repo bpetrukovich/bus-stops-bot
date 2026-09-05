@@ -19,8 +19,17 @@ interface ServiceConfig {
   pollingIntervalSeconds: number;
 }
 
+if (
+  Bun.env.POLLING_INTERVAL_SECONDS &&
+  !Number.isInteger(+Bun.env.POLLING_INTERVAL_SECONDS)
+) {
+  throw new Error("POLLING_INTERVAL_SECONDS is not a number");
+}
+
 const config: ServiceConfig = {
-  pollingIntervalSeconds: 10,
+  pollingIntervalSeconds: Bun.env.POLLING_INTERVAL_SECONDS
+    ? Number(Bun.env.POLLING_INTERVAL_SECONDS)
+    : 10,
 };
 
 if (!Bun.env.DATABASE_URL) {
