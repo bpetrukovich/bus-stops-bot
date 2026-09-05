@@ -1,7 +1,8 @@
+import type { Transport } from "../Transport";
 import type { MinsktransApi } from "./minsktransApi";
 import type { LinkedomParser } from "./Parser";
 
-export class StopNameResolver {
+export class MinskTransFacade {
   constructor(
     private minsktransApi: MinsktransApi,
     private httpParser: LinkedomParser,
@@ -11,5 +12,13 @@ export class StopNameResolver {
     const htmlString = await this.minsktransApi.getBusStop(busstop);
 
     return this.httpParser.getStopName(htmlString);
+  }
+
+  async getBusStopTransports(busstop: string): Promise<Transport[]> {
+    const htmlString = await this.minsktransApi.getBusStop(busstop);
+
+    return this.httpParser
+      .parse(htmlString)
+      .map((transport) => ({ ...transport, busstop }));
   }
 }

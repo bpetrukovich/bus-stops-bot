@@ -7,10 +7,10 @@ import { AppService } from "./application/AppService";
 import { Service } from "./application/service";
 import { UserConfigProcessor } from "./UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
-import { StopNameResolver } from "./infrastructure/StopNameResolver";
 import { TelegramBotUserReminder } from "./infrastructure/TelegramBotUserReminder";
 import { Bot } from "grammy";
 import { TelegramMessageSender } from "./infrastructure/TelegramMessageSender";
+import { MinskTransFacade } from "./infrastructure/MinskTransFacade";
 
 interface ServiceConfig {
   pollingIntervalSeconds: number;
@@ -28,8 +28,6 @@ const reminderRepository = new ReminderRepositoryImpl();
 
 const parser = new LinkedomParser();
 
-const stopNameResolver = new StopNameResolver(minsktransApi, parser);
-
 const telegramMessageSender = new TelegramMessageSender(botInstance.api);
 
 const telegramBotUserReminder = new TelegramBotUserReminder(
@@ -38,10 +36,11 @@ const telegramBotUserReminder = new TelegramBotUserReminder(
 
 const loggingUserReminder = new LoggingUserReminder(telegramBotUserReminder);
 
+const minskTransFacade = new MinskTransFacade(minsktransApi, parser);
+
 const userConfigProcessor = new UserConfigProcessor(
-  new LinkedomParser(),
   loggingUserReminder,
-  minsktransApi,
+  minskTransFacade,
 );
 
 const poller = new IntervalPoller(config.pollingIntervalSeconds);
@@ -50,11 +49,10 @@ const service = new Service(reminderRepository, userConfigProcessor);
 
 const bot = new TelegramBot(
   botInstance,
-  new AppService(reminderRepository, stopNameResolver),
+  new AppService(reminderRepository, minskTransFacade),
 );
 
 botInstance.start();
 bot.start();
 
 poller.start(() => service.poll());
-

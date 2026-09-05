@@ -1,4 +1,4 @@
-import type { StopNameResolver } from "../infrastructure/StopNameResolver";
+import type { MinskTransFacade } from "../infrastructure/MinskTransFacade";
 import type { UserReminderConfigEntity } from "../infrastructure/ReminderRepository";
 
 export interface UserReminderConfigKey {
@@ -33,7 +33,7 @@ export class WrongBusstopError extends Error {
 export class AppService {
   constructor(
     private reminderRepository: ReminderRepository,
-    private stopNameResolver: StopNameResolver,
+    private minskTransFacade: MinskTransFacade,
   ) {}
 
   getForUser(userId: number): UserReminderConfigEntity[] {
@@ -41,7 +41,7 @@ export class AppService {
   }
 
   async add(userConfig: UserReminderConfigDto): Promise<string> {
-    const busStopName = await this.stopNameResolver.getStopName(
+    const busStopName = await this.minskTransFacade.getStopName(
       userConfig.busstop,
     );
 
