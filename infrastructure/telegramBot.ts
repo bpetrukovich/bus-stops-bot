@@ -10,7 +10,6 @@ import {
 } from "./ReminderRepository";
 import { PollerService } from "../application/PollerService";
 import { ParsingError } from "./Parser";
-import type { MessageSender } from "./MessageSender";
 
 export class TelegramBot {
   constructor(
@@ -20,22 +19,18 @@ export class TelegramBot {
   ) {}
 
   async start() {
-    this.bot.command("my_reminders", (ctx) => this.handleMyReminders(ctx));
+    this.bot.command("list", (ctx) => this.handleMyReminders(ctx));
 
-    // Format: /add_reminder <busstop> <transport> <minutes>
-    this.bot.command("add_reminder", (ctx) => this.handleAddReminder(ctx));
+    // Format: /add <busstop> <transport> <minutes>
+    this.bot.command("add", (ctx) => this.handleAddReminder(ctx));
 
-    this.bot.command("remove_reminder", (ctx) =>
-      this.handleRemoveReminder(ctx),
-    );
+    this.bot.command("remove", (ctx) => this.handleRemoveReminder(ctx));
 
     this.bot.command("remove_all", (ctx) => this.handleRemoveAll(ctx));
 
-    this.bot.command("start_reminders", (ctx) =>
-      this.handleStartReminders(ctx),
-    );
+    this.bot.command("start", (ctx) => this.handleStartReminders(ctx));
 
-    this.bot.command("stop_reminders", (ctx) => this.handleStopReminders(ctx));
+    this.bot.command("stop", (ctx) => this.handleStopReminders(ctx));
 
     console.log("Bot started");
   }
@@ -67,19 +62,17 @@ export class TelegramBot {
     const args = ctx.match.trim().split(/\s+/);
 
     if (args.length < 1 || !ctx.match) {
-      ctx.reply(
-        "❌ Неверный формат! Используйте команду так:\n/remove_reminder 2",
-        { parse_mode: "Markdown" },
-      );
+      ctx.reply("❌ Неверный формат! Используйте команду так:\n/remove 2", {
+        parse_mode: "Markdown",
+      });
       return;
     }
 
     const [keyStr] = args;
     if (!keyStr) {
-      ctx.reply(
-        "❌ Неверный формат! Используйте команду так:\n/remove_reminder 2",
-        { parse_mode: "Markdown" },
-      );
+      ctx.reply("❌ Неверный формат! Используйте команду так:\n/remove 2", {
+        parse_mode: "Markdown",
+      });
       return;
     }
 
@@ -146,7 +139,7 @@ export class TelegramBot {
 
     if (args.length < 3 || !ctx.match) {
       ctx.reply(
-        "❌ Неверный формат! Используйте команду так:\n/add_reminder 46226 TP3 20",
+        "❌ Неверный формат! Используйте команду так:\n/add 46226 TP3 20",
         { parse_mode: "Markdown" },
       );
       return;
@@ -155,7 +148,7 @@ export class TelegramBot {
     const [busstop, transportName, remindStr] = args;
     if (!busstop || !transportName || !remindStr) {
       ctx.reply(
-        "❌ Неверный формат! Используйте команду так:\n/add_reminder 46226 TP3 20",
+        "❌ Неверный формат! Используйте команду так:\n/add 46226 TP3 20",
         { parse_mode: "Markdown" },
       );
       return;
