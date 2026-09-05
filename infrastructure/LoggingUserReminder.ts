@@ -1,4 +1,4 @@
-import type { Transport } from "../Transport";
+import type { Transport } from "../domain/Transport";
 import type { UserReminder } from "../domain/UserReminder";
 
 export class LoggingUserReminder implements UserReminder {

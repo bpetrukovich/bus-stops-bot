@@ -1,5 +1,5 @@
 import { DOMParser } from "linkedom";
-import type { ParsedTransport } from "../Transport";
+import type { ParsedTransport } from "../domain/Transport";
 import { MinutesParser } from "./MinutesParser";
 import { WrongBusstopError } from "../application/ReminderService";
 

@@ -1,4 +1,4 @@
-import type { Transport } from "../Transport";
+import type { Transport } from "../domain/Transport";
 import type { MinsktransApi } from "./MinsktransApi";
 import type { LinkedomParser } from "./Parser";
 

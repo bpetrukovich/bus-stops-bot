@@ -1,6 +1,6 @@
 import type { MinskTransFacade } from "../infrastructure/MinskTransFacade";
 import type { UserReminderConfigEntity } from "../infrastructure/ReminderRepository";
-import type { Transport } from "../Transport";
+import type { Transport } from "./Transport";
 import type { UserReminder } from "./UserReminder";
 
 export class UserConfigProcessor {
