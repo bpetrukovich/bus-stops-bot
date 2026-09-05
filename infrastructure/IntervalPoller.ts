@@ -19,19 +19,22 @@ export class IntervalPoller {
   ) {}
 
   start(userId: number) {
-    const userReminders = this.reminderRepository.getForUser(userId);
-    if (!userReminders) {
-      throw new NoRemindersForUserError("User has no reminders");
-    }
-
     const existingInterval = this.intervalPollerRepository.get(userId);
     if (existingInterval) {
       throw new Error("Interval poller already started");
     }
+    const userReminders = this.reminderRepository.getForUser(userId);
+    if (!userReminders) {
+      throw new NoRemindersForUserError("User has no reminders");
+    }
     this.userConfigProcessor.processAll(userId, userReminders);
     const interval = setInterval(async () => {
       console.log("Poll...");
+      const userReminders = this.reminderRepository.getForUser(userId);
       this.userConfigProcessor.processAll(userId, userReminders);
+      if (!userReminders) {
+        throw new NoRemindersForUserError("User has no reminders");
+      }
     }, this.intervalSeconds * 1000);
 
     console.log(
