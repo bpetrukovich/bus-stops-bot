@@ -11,6 +11,8 @@ import { TelegramBotUserReminder } from "./infrastructure/TelegramBotUserReminde
 import { Bot } from "grammy";
 import { TelegramMessageSender } from "./infrastructure/TelegramMessageSender";
 import { MinskTransFacade } from "./infrastructure/MinskTransFacade";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 
 interface ServiceConfig {
   pollingIntervalSeconds: number;
@@ -20,7 +22,23 @@ const config: ServiceConfig = {
   pollingIntervalSeconds: 10,
 };
 
-const botInstance = new Bot(Bun.env.BOT_TOKEN!);
+if (!Bun.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is not set");
+}
+
+if (!Bun.env.BOT_TOKEN) {
+  throw new Error("BOT_TOKEN is not set");
+}
+
+const pool = new Pool({
+  connectionString: Bun.env.DATABASE_URL,
+});
+
+const db = drizzle({ client: pool });
+
+await db.execute("select 1");
+
+const botInstance = new Bot(Bun.env.BOT_TOKEN);
 
 const minsktransApi = new MinsktransApi();
 
