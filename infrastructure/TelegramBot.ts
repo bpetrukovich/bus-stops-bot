@@ -41,12 +41,12 @@ export class TelegramBot {
     this.bot.command("enable", (ctx) => this.handleSetActive(ctx, true));
   }
 
-  private handleRemoveAll(ctx: CommandContext<Context>): void {
+  private async handleRemoveAll(ctx: CommandContext<Context>): Promise<void> {
     const userId = ctx.from?.id;
     if (!userId) return;
 
     try {
-      this.appService.removeAll(userId);
+      await this.appService.removeAll(userId);
 
       ctx.reply(`✅ Напоминания успешно удалены!`);
     } catch (e) {
@@ -61,7 +61,9 @@ export class TelegramBot {
     }
   }
 
-  private handleRemoveReminder(ctx: CommandContext<Context>): void {
+  private async handleRemoveReminder(
+    ctx: CommandContext<Context>,
+  ): Promise<void> {
     const userId = ctx.from?.id;
     if (!userId) return;
 
@@ -90,7 +92,7 @@ export class TelegramBot {
     }
 
     try {
-      this.appService.remove(userId, key);
+      await this.appService.remove(userId, key);
 
       ctx.reply(`✅ Напоминание ${key} успешно удалено!`);
     } catch (e) {
@@ -101,10 +103,10 @@ export class TelegramBot {
     }
   }
 
-  private handleSetActive(
+  private async handleSetActive(
     ctx: CommandContext<Context>,
     isActive: boolean,
-  ): void {
+  ): Promise<void> {
     const userId = ctx.from?.id;
     if (!userId) return;
 
@@ -133,7 +135,7 @@ export class TelegramBot {
     }
 
     try {
-      this.appService.setActive(userId, key, isActive);
+      await this.appService.setActive(userId, key, isActive);
 
       const action = isActive ? "включено" : "выключено";
       ctx.reply(`✅ Напоминание ${key} ${action}!`);
@@ -150,7 +152,7 @@ export class TelegramBot {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    const reminders = this.appService.getForUser(userId);
+    const reminders = await this.appService.getForUser(userId);
 
     if (reminders.length === 0) {
       return ctx.reply("У вас пока нет сохраненных напоминаний.");

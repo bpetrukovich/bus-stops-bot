@@ -15,12 +15,12 @@ export interface UserReminderConfigDto {
 }
 
 export interface ReminderRepository {
-  getForUser(userId: number): UserReminderConfigEntity[];
-  getAllActive(): UserReminderConfigEntity[];
-  add(userId: number, userConfig: UserReminderConfigDto): void;
-  remove(userId: number, key: number): void;
-  removeAll(userId: number): void;
-  setActive(userId: number, key: number, isActive: boolean): void;
+  getForUser(userId: number): Promise<UserReminderConfigEntity[]>;
+  getAllActive(): Promise<UserReminderConfigEntity[]>;
+  add(userId: number, userConfig: UserReminderConfigDto): Promise<void>;
+  remove(userId: number, key: number): Promise<void>;
+  removeAll(userId: number): Promise<void>;
+  setActive(userId: number, key: number, isActive: boolean): Promise<void>;
 }
 
 export class WrongBusstopError extends Error {
@@ -36,7 +36,7 @@ export class ReminderService {
     private minskTransFacade: MinskTransFacade,
   ) {}
 
-  getForUser(userId: number): UserReminderConfigEntity[] {
+  async getForUser(userId: number): Promise<UserReminderConfigEntity[]> {
     return this.reminderRepository.getForUser(userId);
   }
 
@@ -45,20 +45,20 @@ export class ReminderService {
       userConfig.busstop,
     );
 
-    this.reminderRepository.add(userConfig.userId, userConfig);
+    await this.reminderRepository.add(userConfig.userId, userConfig);
 
     return busStopName;
   }
 
-  remove(userId: number, key: number) {
-    this.reminderRepository.remove(userId, key);
+  async remove(userId: number, key: number) {
+    await this.reminderRepository.remove(userId, key);
   }
 
-  removeAll(userId: number) {
-    this.reminderRepository.removeAll(userId);
+  async removeAll(userId: number) {
+    await this.reminderRepository.removeAll(userId);
   }
 
-  setActive(userId: number, key: number, isActive: boolean) {
-    this.reminderRepository.setActive(userId, key, isActive);
+  async setActive(userId: number, key: number, isActive: boolean) {
+    await this.reminderRepository.setActive(userId, key, isActive);
   }
 }

@@ -42,7 +42,7 @@ const botInstance = new Bot(Bun.env.BOT_TOKEN);
 
 const minsktransApi = new MinsktransApi();
 
-const reminderRepository = new ReminderRepositoryImpl();
+const reminderRepository = new ReminderRepositoryImpl(db);
 
 const parser = new LinkedomParser();
 

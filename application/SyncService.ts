@@ -8,7 +8,7 @@ export class SyncService {
   ) {}
 
   async poll(): Promise<void> {
-    const activeConfigs = this.reminderRepository.getAllActive();
+    const activeConfigs = await this.reminderRepository.getAllActive();
     if (activeConfigs.length === 0) {
       return;
     }

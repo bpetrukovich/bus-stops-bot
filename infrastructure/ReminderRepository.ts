@@ -1,7 +1,10 @@
+import { and, asc, eq, max } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type {
   ReminderRepository,
   UserReminderConfigDto,
 } from "../application/ReminderService";
+import { reminders } from "./drizzle/schema";
 
 export interface UserReminderConfigEntity {
   busstop: string;
@@ -30,54 +33,75 @@ export class RemindersNotFoundForUserError extends Error {
 }
 
 export class ReminderRepositoryImpl implements ReminderRepository {
-  private db: UserReminderConfigEntity[] = [];
+  constructor(private db: NodePgDatabase) {}
 
-  getForUser(userId: number): UserReminderConfigEntity[] {
-    return this.db.filter((config) => config.userId === userId);
+  async getForUser(userId: number): Promise<UserReminderConfigEntity[]> {
+    return this.db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.userId, userId))
+      .orderBy(asc(reminders.key));
   }
 
-  getAllActive(): UserReminderConfigEntity[] {
-    return this.db.filter((config) => config.isActive);
+  async getAllActive(): Promise<UserReminderConfigEntity[]> {
+    return this.db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.isActive, true));
   }
 
-  add(userId: number, userConfig: UserReminderConfigDto): void {
-    const existingIndex = this.db.findIndex(
-      (config) =>
-        config.userId === userId &&
-        config.busstop === userConfig.busstop &&
-        config.transportName === userConfig.transportName,
-    );
+  async add(
+    userId: number,
+    userConfig: UserReminderConfigDto,
+  ): Promise<void> {
+    const existing = await this.db
+      .select()
+      .from(reminders)
+      .where(
+        and(
+          eq(reminders.userId, userId),
+          eq(reminders.busstop, userConfig.busstop),
+          eq(reminders.transportName, userConfig.transportName),
+        ),
+      )
+      .limit(1);
 
-    if (existingIndex !== -1) {
-      const existing = this.db[existingIndex]!;
-      this.db[existingIndex] = {
-        ...existing,
-        remindInMinutes: userConfig.remindInMinutes,
-      };
+    if (existing.length > 0) {
+      await this.db
+        .update(reminders)
+        .set({ remindInMinutes: userConfig.remindInMinutes })
+        .where(
+          and(
+            eq(reminders.userId, userId),
+            eq(reminders.key, existing[0]!.key),
+          ),
+        );
       return;
     }
 
-    const newKey = this.db.length > 0
-      ? Math.max(...this.db.map((c) => c.key), 0) + 1
-      : 1;
+    const maxKeyResult = await this.db
+      .select({ maxKey: max(reminders.key) })
+      .from(reminders)
+      .where(eq(reminders.userId, userId));
 
-    this.db.push({
+    const newKey = (maxKeyResult[0]?.maxKey ?? 0) + 1;
+
+    await this.db.insert(reminders).values({
       key: newKey,
       userId,
-      isActive: true,
       busstop: userConfig.busstop,
       transportName: userConfig.transportName,
       remindInMinutes: userConfig.remindInMinutes,
+      isActive: true,
     });
   }
 
-  remove(userId: number, key: number): void {
-    const initialLength = this.db.length;
-    this.db = this.db.filter(
-      (config) => !(config.userId === userId && config.key === key),
-    );
+  async remove(userId: number, key: number): Promise<void> {
+    const result = await this.db
+      .delete(reminders)
+      .where(and(eq(reminders.userId, userId), eq(reminders.key, key)));
 
-    if (this.db.length === initialLength) {
+    if (result.rowCount === 0) {
       throw new ReminderDoesNotExistError(
         `Can't find config for user ${userId} and key ${key}.`,
         key,
@@ -85,10 +109,12 @@ export class ReminderRepositoryImpl implements ReminderRepository {
     }
   }
 
-  removeAll(userId: number): void {
-    const userConfigs = this.db.filter(
-      (config) => config.userId === userId,
-    );
+  async removeAll(userId: number): Promise<void> {
+    const userConfigs = await this.db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.userId, userId))
+      .limit(1);
 
     if (userConfigs.length === 0) {
       throw new RemindersNotFoundForUserError(
@@ -96,21 +122,26 @@ export class ReminderRepositoryImpl implements ReminderRepository {
       );
     }
 
-    this.db = this.db.filter((config) => config.userId !== userId);
+    await this.db
+      .delete(reminders)
+      .where(eq(reminders.userId, userId));
   }
 
-  setActive(userId: number, key: number, isActive: boolean): void {
-    const existing = this.db.find(
-      (config) => config.userId === userId && config.key === key,
-    );
+  async setActive(
+    userId: number,
+    key: number,
+    isActive: boolean,
+  ): Promise<void> {
+    const result = await this.db
+      .update(reminders)
+      .set({ isActive })
+      .where(and(eq(reminders.userId, userId), eq(reminders.key, key)));
 
-    if (!existing) {
+    if (result.rowCount === 0) {
       throw new ReminderDoesNotExistError(
         `Can't find config for user ${userId} and key ${key}.`,
         key,
       );
     }
-
-    existing.isActive = isActive;
   }
 }
