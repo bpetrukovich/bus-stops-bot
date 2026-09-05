@@ -4,6 +4,7 @@ import type { UserReminderConfig } from "./UserReminderConfig";
 
 export class IntervalPoller {
   constructor(
+    // NOTE: UserConfigProcessor dependency can be removed
     private userConfigProcessor: UserConfigProcessor,
     private intervalPollerRepository: IntervalPollerRepository,
     private intervalSeconds: number,
