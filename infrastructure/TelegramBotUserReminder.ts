@@ -1,5 +1,5 @@
 import type { Transport } from "../Transport";
-import type { UserReminder } from "../UserReminder";
+import type { UserReminder } from "../domain/UserReminder";
 import type { MessageSender } from "./MessageSender";
 
 export class TelegramBotUserReminder implements UserReminder {

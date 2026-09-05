@@ -1,5 +1,5 @@
 import type { Transport } from "../Transport";
-import type { UserReminder } from "../UserReminder";
+import type { UserReminder } from "../domain/UserReminder";
 
 export class LoggingUserReminder implements UserReminder {
   constructor(private userReminder: UserReminder) {}

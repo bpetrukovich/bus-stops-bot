@@ -1,7 +1,7 @@
 import type { MinskTransFacade } from "./infrastructure/MinskTransFacade";
 import type { UserReminderConfigEntity } from "./infrastructure/ReminderRepository";
 import type { Transport } from "./Transport";
-import type { UserReminder } from "./UserReminder";
+import type { UserReminder } from "./domain/UserReminder";
 
 export class UserConfigProcessor {
   constructor(
@@ -19,7 +19,7 @@ export class UserConfigProcessor {
       Object.entries(groupedByBusstop).map(
         async ([busstop, busstopConfigs]) => {
           if (!busstopConfigs) {
-            throw new Error();
+            throw new Error("No configs for busstop");
           }
 
           return {
@@ -71,4 +71,3 @@ export class UserConfigProcessor {
       }));
   }
 }
-
