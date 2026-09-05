@@ -53,6 +53,6 @@ const bot = new TelegramBot(
 );
 
 botInstance.start();
-bot.start();
+bot.listenCommands();
 
 poller.start(() => service.poll());

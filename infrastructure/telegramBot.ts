@@ -16,7 +16,7 @@ export class TelegramBot {
     private appService: AppService,
   ) {}
 
-  async start() {
+  async listenCommands() {
     this.bot.command("list", (ctx) => this.handleMyReminders(ctx));
 
     // Format: /add <busstop> <transport> <minutes>
@@ -35,7 +35,7 @@ export class TelegramBot {
     console.log("Bot started");
   }
 
-  handleRemoveAll(ctx: CommandContext<Context>): void {
+  private handleRemoveAll(ctx: CommandContext<Context>): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
@@ -55,7 +55,7 @@ export class TelegramBot {
     }
   }
 
-  handleRemoveReminder(ctx: CommandContext<Context>): void {
+  private handleRemoveReminder(ctx: CommandContext<Context>): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
@@ -95,29 +95,24 @@ export class TelegramBot {
     }
   }
 
-  handleSetActive(
-    ctx: CommandContext<Context>,
-    isActive: boolean,
-  ): void {
+  private handleSetActive(ctx: CommandContext<Context>, isActive: boolean): void {
     const userId = ctx.from?.id;
     if (!userId) return;
 
     const args = ctx.match.trim().split(/\s+/);
 
     if (args.length < 1 || !ctx.match) {
-      ctx.reply(
-        "❌ Неверный формат! Используйте команду так:\n/disable 2",
-        { parse_mode: "Markdown" },
-      );
+      ctx.reply("❌ Неверный формат! Используйте команду так:\n/disable 2", {
+        parse_mode: "Markdown",
+      });
       return;
     }
 
     const [keyStr] = args;
     if (!keyStr) {
-      ctx.reply(
-        "❌ Неверный формат! Используйте команду так:\n/disable 2",
-        { parse_mode: "Markdown" },
-      );
+      ctx.reply("❌ Неверный формат! Используйте команду так:\n/disable 2", {
+        parse_mode: "Markdown",
+      });
       return;
     }
 
@@ -142,7 +137,7 @@ export class TelegramBot {
     }
   }
 
-  async handleMyReminders(ctx: CommandContext<Context>) {
+  private async handleMyReminders(ctx: CommandContext<Context>) {
     const userId = ctx.from?.id;
     if (!userId) return;
 
@@ -164,7 +159,7 @@ export class TelegramBot {
     });
   }
 
-  async handleAddReminder(ctx: CommandContext<Context>): Promise<void> {
+  private async handleAddReminder(ctx: CommandContext<Context>): Promise<void> {
     const userId = ctx.from?.id;
     if (!userId) return;
 
