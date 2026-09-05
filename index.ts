@@ -3,9 +3,9 @@ import { LoggingUserReminder } from "./infrastructure/LoggingUserReminder";
 import { MinsktransApi } from "./infrastructure/MinsktransApi";
 import { LinkedomParser } from "./infrastructure/Parser";
 import { TelegramBot } from "./infrastructure/TelegramBot";
-import { AppService } from "./application/AppService";
-import { Service } from "./application/Service";
-import { UserConfigProcessor } from "./UserConfigProcessor";
+import { ReminderService } from "./application/ReminderService";
+import { SyncService } from "./application/SyncService";
+import { UserConfigProcessor } from "./domain/UserConfigProcessor";
 import { ReminderRepositoryImpl } from "./infrastructure/ReminderRepository";
 import { TelegramBotUserReminder } from "./infrastructure/TelegramBotUserReminder";
 import { Bot } from "grammy";
@@ -45,14 +45,14 @@ const userConfigProcessor = new UserConfigProcessor(
 
 const poller = new IntervalPoller(config.pollingIntervalSeconds);
 
-const service = new Service(reminderRepository, userConfigProcessor);
+const syncService = new SyncService(reminderRepository, userConfigProcessor);
 
 const bot = new TelegramBot(
   botInstance,
-  new AppService(reminderRepository, minskTransFacade),
+  new ReminderService(reminderRepository, minskTransFacade),
 );
 
 botInstance.start();
 bot.listenCommands();
 
-poller.start(() => service.poll());
+poller.start(() => syncService.poll());

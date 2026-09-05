@@ -1,7 +1,7 @@
-import type { UserConfigProcessor } from "../UserConfigProcessor";
-import type { ReminderRepository } from "./AppService";
+import type { UserConfigProcessor } from "../domain/UserConfigProcessor";
+import type { ReminderRepository } from "./ReminderService";
 
-export class Service {
+export class SyncService {
   constructor(
     private reminderRepository: ReminderRepository,
     private userConfigProcessor: UserConfigProcessor,

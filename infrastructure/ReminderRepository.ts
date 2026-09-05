@@ -1,7 +1,7 @@
 import type {
   ReminderRepository,
   UserReminderConfigDto,
-} from "../application/AppService";
+} from "../application/ReminderService";
 
 export interface UserReminderConfigEntity {
   busstop: string;

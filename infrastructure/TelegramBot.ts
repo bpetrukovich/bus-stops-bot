@@ -1,9 +1,9 @@
 import { Bot, Context, type CommandContext } from "grammy";
 import {
   WrongBusstopError,
-  type AppService,
+  type ReminderService,
   type UserReminderConfigDto,
-} from "../application/AppService";
+} from "../application/ReminderService";
 import {
   ReminderDoesNotExistError,
   RemindersNotFoundForUserError,
@@ -13,7 +13,7 @@ import { ParsingError } from "./Parser";
 export class TelegramBot {
   constructor(
     private bot: Bot,
-    private appService: AppService,
+    private appService: ReminderService,
   ) {}
 
   async listenCommands() {

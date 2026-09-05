@@ -1,7 +1,7 @@
 import { DOMParser } from "linkedom";
 import type { ParsedTransport } from "../Transport";
 import { MinutesParser } from "./MinutesParser";
-import { WrongBusstopError } from "../application/AppService";
+import { WrongBusstopError } from "../application/ReminderService";
 
 export class ParsingError extends Error {
   constructor(message: string) {

@@ -30,7 +30,7 @@ export class WrongBusstopError extends Error {
   }
 }
 
-export class AppService {
+export class ReminderService {
   constructor(
     private reminderRepository: ReminderRepository,
     private minskTransFacade: MinskTransFacade,
