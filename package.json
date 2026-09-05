@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "check": "tsc --noEmit",
-    "db:push": "bun x --bun drizzle-kit push"
+    "db:push": "bun x --bun drizzle-kit push",
+    "start": "bun run index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
